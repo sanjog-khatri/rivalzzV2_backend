@@ -287,6 +287,7 @@ const getOngoingChallenges = async (req, res) => {
     const blockedUsers = await Block.find({ blocker: req.user.id }).select("blocked");
     const blockedIds = blockedUsers.map((b) => b.blocked);
 
+    // Fetch ongoing challenges (excluding user's own battles and blocked users)
     let challenges = await Challenge.find({
       status: "ongoing",
       challenger: { $ne: req.user.id },
@@ -299,7 +300,10 @@ const getOngoingChallenges = async (req, res) => {
       .populate("challenger", "username profileImage rating")
       .populate("acceptor", "username profileImage rating")
       .populate("category", "name image")
-      .sort({ createdAt: -1 });
+      .lean();   // Better performance
+
+    // Randomize order for Arena feel
+    challenges = challenges.sort(() => Math.random() - 0.5);
 
     // Add vote counts to each challenge
     challenges = await Promise.all(
@@ -315,7 +319,7 @@ const getOngoingChallenges = async (req, res) => {
         });
 
         return {
-          ...challenge.toObject(),
+          ...challenge,
           votes: {
             challenger: challengerVotes,
             acceptor: acceptorVotes
