@@ -788,38 +788,77 @@ const getFactionLeaderboard = async (req, res) => {
 //   }
 // };
 
-// User Blocking
-const blockUser = async (req, res) => {
-  const { userId } = req.body; // ID of user to block
-  try {
-    if (userId === req.user.id) return res.status(400).json({ message: "You cannot block yourself" });
+// ==================== USER BLOCKING ====================
 
-    await Block.create({ blocker: req.user.id, blocked: userId });
+const blockUser = async (req, res) => {
+  const { userId } = req.body;   // ID of user to block
+
+  try {
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+
+    if (userId === req.user.id) {
+      return res.status(400).json({ message: "You cannot block yourself" });
+    }
+
+    const existingBlock = await Block.findOne({ 
+      blocker: req.user.id, 
+      blocked: userId 
+    });
+
+    if (existingBlock) {
+      return res.status(400).json({ message: "User already blocked" });
+    }
+
+    await Block.create({ 
+      blocker: req.user.id, 
+      blocked: userId 
+    });
+
     res.json({ message: "User blocked successfully" });
   } catch (error) {
-    if (error.code === 11000) return res.status(400).json({ message: "User already blocked" });
+    console.error("Block Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 const unblockUser = async (req, res) => {
-  const { userId } = req.body;
+  const { userId } = req.body;   // ID of user to unblock
+
   try {
-    await Block.findOneAndDelete({ blocker: req.user.id, blocked: userId });
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+
+    const result = await Block.findOneAndDelete({ 
+      blocker: req.user.id, 
+      blocked: userId 
+    });
+
+    if (!result) {
+      return res.status(404).json({ message: "Block record not found" });
+    }
+
     res.json({ message: "User unblocked successfully" });
   } catch (error) {
+    console.error("Unblock Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 const getBlockedUsers = async (req, res) => {
   try {
-    const blocked = await Block.find({ blocker: req.user.id }).populate("blocked", "username profileImage");
+    const blocked = await Block.find({ blocker: req.user.id })
+      .populate("blocked", "username profileImage rating")
+      .sort({ createdAt: -1 });
+
     res.json(blocked);
   } catch (error) {
+    console.error("Get Blocked Users Error:", error);
     res.status(500).json({ message: "Server error" });
   }
-}; 
+};
 
 export {
   getMyProfile,

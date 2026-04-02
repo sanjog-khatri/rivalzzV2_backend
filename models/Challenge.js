@@ -53,7 +53,7 @@ const challengeSchema = new mongoose.Schema(
     },
     voteThreshold: {
       type: Number,
-      default: 10,
+      default: 30,
     },
   },
   { timestamps: true }
