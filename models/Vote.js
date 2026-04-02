@@ -24,7 +24,7 @@ const voteSchema = new mongoose.Schema(
   }
 );
 
-// UNIQUE index → one vote per user per challenge (prevents duplicates)
+// one vote per user per challenge (prevents duplicates)
 voteSchema.index({ challenge: 1, voter: 1 }, { unique: true });
 
 const Vote = mongoose.model("Vote", voteSchema);

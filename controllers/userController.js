@@ -39,7 +39,7 @@ const checkAndCompleteChallenge = async (challengeId, io) => {
   const voteCount = await Vote.countDocuments({ challenge: challengeId });
 
   if (voteCount >= challenge.voteThreshold) {
-    // Determine winner by current rating (or by vote count if you prefer)
+    // Determine winner by current rating (or by vote count)
     const challengerVotes = await Vote.countDocuments({
       challenge: challengeId,
       votedFor: "challenger",
@@ -199,7 +199,7 @@ const createChallenge = async (req, res) => {
       category,
       challengerImage,
       status: "pending",
-      voteThreshold: 10,           // You can make this dynamic later
+      voteThreshold: 30,           // You can make this dynamic later
     });
 
     res.status(201).json({ 
@@ -392,7 +392,7 @@ const acceptChallenge = async (req, res) => {
   }
 };
 
-// ==================== VOTING (Fixed Faction Points + Safe Total) ====================
+// ==================== VOTING (Faction Points + Safe Total) ====================
 const voteOnChallenge = async (req, res) => {
   const { id: challengeId } = req.params;
   const { votedFor } = req.body;
@@ -450,7 +450,7 @@ const voteOnChallenge = async (req, res) => {
       challenger.rating = undoA;
       acceptor.rating = undoB;
 
-      const undoDelta = challengerOldRating - undoA;   // Real change
+      const undoDelta = challengerOldRating - undoA;  
       await updateFactionRating(challengerId, -undoDelta);
       await updateFactionRating(acceptorId, -(acceptorOldRating - undoB));
     }
@@ -731,7 +731,7 @@ const markAllAsRead = async (req, res) => {
 const getGlobalLeaderboard = async (req, res) => {
   try {
     const users = await User.find({
-      role: { $ne: "admin" }        // ← Exclude admins
+      role: { $ne: "admin" }        // Exclude admins
     })
       .select("username profileImage rating faction")
       .populate("faction", "name")
@@ -840,7 +840,7 @@ export {
   markAllAsRead,
   getGlobalLeaderboard,
   getFactionLeaderboard,
-//   completeChallenge,
+//completeChallenge,
   blockUser,
   unblockUser,
   getBlockedUsers

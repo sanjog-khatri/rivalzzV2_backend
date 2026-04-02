@@ -28,7 +28,7 @@ const signup = async (req, res) => {
       email,
       password: hashedPassword,
       role,                    
-      profileImage,                    // ← Now comes from multer file
+      profileImage,                   
       rating: 1200,
       faction: null,
       banned: false,

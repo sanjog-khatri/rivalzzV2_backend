@@ -126,7 +126,7 @@ const deleteFaction = async (req, res) => {
   }
 };
 
-// ==================== CATEGORY CRUD (Full CRUD as requested) ====================
+// ==================== CATEGORY CRUD ====================
 const getAllCategories = async (req, res) => {
   try {
     const categories = await Category.find()
@@ -177,7 +177,7 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
   const { id } = req.params;
   try {
-    // Optional: Check if any challenges are using this category before deleting
+    // Check if any challenges are using this category before deleting
     const challengeCount = await Challenge.countDocuments({ category: id });
     if (challengeCount > 0) {
       return res.status(400).json({ 
@@ -255,15 +255,12 @@ export {
   createFaction,
   updateFaction,
   deleteFaction,
-  // Category CRUD
   getAllCategories,
   createCategory,
   updateCategory,
   deleteCategory,
-  // Challenge
   getAllChallenges,
   deleteChallenge,
-  // Reports
   getAllReports,
   reviewReport,
 };

@@ -34,7 +34,7 @@ router.use(protect);
 // Profile
 router.get("/me", getMyProfile);
 
-// Update profile (username + image)
+// Update profile 
 router.put("/profile", protect, upload.single("profileImage"), updateProfile);
 
 // Get all categories
@@ -48,7 +48,7 @@ router.get("/challenges/ongoing", getOngoingChallenges);
 
 router.put(
   "/challenges/:id/accept",
-  upload.single("acceptorImage"),      // ← multer
+  upload.single("acceptorImage"),      
   acceptChallenge
 );
 
@@ -70,7 +70,7 @@ router.patch("/notifications/read-all", markAllAsRead);
 router.get("/leaderboard/global", getGlobalLeaderboard);
 router.get("/leaderboard/factions", getFactionLeaderboard);
 
-// // Challenge completion
+// Challenge completion
 // router.post("/challenges/:id/complete", completeChallenge);
 
 // Blocking

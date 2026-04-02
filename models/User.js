@@ -42,7 +42,6 @@ const userSchema = new mongoose.Schema(
       ref: "Faction",
       default: null,
     },
-    // NEW: For admin moderation
     banned: {
       type: Boolean,
       default: false,

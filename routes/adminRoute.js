@@ -38,7 +38,7 @@ router.post("/factions", upload.single("factionImage"), createFaction);
 router.put("/factions/:id", upload.single("factionImage"), updateFaction);
 router.delete("/factions/:id", deleteFaction);
 
-// Category CRUD (Full CRUD)
+// Category CRUD
 router.get("/categories", getAllCategories);
 router.post("/categories", upload.single("categoryImage"), createCategory);
 router.put("/categories/:id", upload.single("categoryImage"), updateCategory);
