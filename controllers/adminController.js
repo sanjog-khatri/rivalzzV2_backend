@@ -9,7 +9,11 @@ import Notification from "../models/Notification.js";
 // ==================== USER MANAGEMENT ====================
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password").populate("faction", "name");
+    const users = await User.find()
+      .select("-password")
+      .populate("faction", "name")
+      .sort({ createdAt: -1 });
+
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -246,6 +250,107 @@ const reviewReport = async (req, res) => {
   }
 };
 
+// ==================== BAN / UNBAN USER ====================
+
+const banUser = async (req, res) => {
+  const { id } = req.params;
+  const { reason, duration } = req.body; // duration in days (optional for temp ban)
+
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Prevent banning admins (optional safety)
+    if (user.role === "admin") {
+      return res.status(403).json({ message: "Cannot ban an admin" });
+    }
+
+    user.banned = true;
+    user.banReason = reason || "No reason provided";
+
+    if (duration && duration > 0) {
+      const banEndDate = new Date();
+      banEndDate.setDate(banEndDate.getDate() + parseInt(duration));
+      user.bannedUntil = banEndDate;
+    } else {
+      user.bannedUntil = null; // permanent ban
+    }
+
+    await user.save();
+
+    // Optional: Create notification for the user
+    const notification = await Notification.create({
+      recipient: user._id,
+      sender: req.user.id,
+      type: "ban",
+      message: `You have been banned.${reason ? ` Reason: ${reason}` : ""}`,
+    });
+
+    const io = req.app.get("io");
+    io.to(`user_${user._id}`).emit("notification", {
+      type: "ban",
+      message: `You have been banned.${reason ? ` Reason: ${reason}` : ""}`,
+      notificationId: notification._id,
+      bannedUntil: user.bannedUntil,
+    });
+
+    res.json({
+      message: "User banned successfully",
+      user: {
+        _id: user._id,
+        username: user.username,
+        banned: user.banned,
+        banReason: user.banReason,
+        bannedUntil: user.bannedUntil,
+      },
+    });
+  } catch (error) {
+    console.error("Ban User Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const unbanUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.banned = false;
+    user.banReason = "";
+    user.bannedUntil = null;
+
+    await user.save();
+
+    // Optional: Notify the user
+    const notification = await Notification.create({
+      recipient: user._id,
+      sender: req.user.id,
+      type: "unban",
+      message: "You have been unbanned and can now access the platform again.",
+    });
+
+    const io = req.app.get("io");
+    io.to(`user_${user._id}`).emit("notification", {
+      type: "unban",
+      message: "You have been unbanned.",
+      notificationId: notification._id,
+    });
+
+    res.json({
+      message: "User unbanned successfully",
+      user: {
+        _id: user._id,
+        username: user.username,
+        banned: user.banned,
+      },
+    });
+  } catch (error) {
+    console.error("Unban User Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 export {
   getAllUsers,
@@ -263,4 +368,6 @@ export {
   deleteChallenge,
   getAllReports,
   reviewReport,
+  banUser,
+  unbanUser
 };

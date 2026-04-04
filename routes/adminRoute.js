@@ -16,6 +16,8 @@ import {
   deleteChallenge,
   getAllReports,
   reviewReport,
+  banUser,
+  unbanUser,
 } from "../controllers/adminController.js";
 
 import { protect, isAdmin } from "../middleware/authMiddleware.js";
@@ -51,5 +53,9 @@ router.delete("/challenges/:id", deleteChallenge);
 // Reported challenges
 router.get("/reports", getAllReports);
 router.patch("/reports/:id/review", reviewReport);
+
+// ban users
+router.patch("/users/:id/ban", banUser);  
+router.patch("/users/:id/unban", unbanUser);
 
 export default router;
